@@ -49,7 +49,6 @@ addButton.addEventListener("click", () => {
 
   deleteBtn.addEventListener("click", () => {
     const rowIndex = newRow.rowIndex - 1;
-    // if (expenseIndex > -1) {
     expenses.splice(rowIndex, 1);
 
     totalAmount -= amount;
