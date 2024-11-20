@@ -8,6 +8,52 @@ const totalAmountBlock = document.querySelector("#total-amount");
 let expenses = [];
 let totalAmount = 0;
 
+const saveToLocalStorage = () => {
+  localStorage.setItem("expenses", JSON.stringify(expenses));
+};
+
+const loadFromLocalStorage = () => {
+  const storedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
+  expenses = storedExpenses;
+  totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+  totalAmountBlock.textContent = `Total: ${totalAmount}`;
+  expenses.forEach((expense) => addExpenseToTable(expense));
+};
+
+const addExpenseToTable = (expense) => {
+  const newRow = expensesTable.insertRow();
+  const categoryCell = newRow.insertCell();
+  const AmountCell = newRow.insertCell();
+  const dateCell = newRow.insertCell();
+  const deleteCell = newRow.insertCell();
+
+  categoryCell.textContent = expense.category;
+  AmountCell.textContent = expense.amount;
+  dateCell.textContent = expense.date;
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "Delete";
+  deleteBtn.classList.add("delete-button");
+  deleteCell.appendChild(deleteBtn);
+
+  deleteBtn.addEventListener("click", () => {
+    const rowIndex = Array.from(expensesTable.rows).indexOf(newRow);
+    const deletedExpense = expenses[rowIndex];
+
+    expenses.splice(rowIndex, 1);
+
+    totalAmount -= deletedExpense.amount;
+    if (expenses.length === 0) {
+      totalAmount = 0;
+    }
+    totalAmountBlock.textContent = `Total: ${totalAmount}`;
+
+    expensesTable.deleteRow(newRow);
+    saveToLocalStorage();
+  });
+};
+
 addButton.addEventListener("click", () => {
   const category = selectCategory.value;
   const amount = Number(inputAmount.value);
@@ -32,32 +78,12 @@ addButton.addEventListener("click", () => {
   totalAmount += amount;
   totalAmountBlock.textContent = `Total: ${totalAmount}`;
 
-  const newRow = expensesTable.insertRow();
-  const categoryCell = newRow.insertCell();
-  const AmountCell = newRow.insertCell();
-  const dateCell = newRow.insertCell();
-  const deleteCell = newRow.insertCell();
-
-  categoryCell.textContent = category;
-  AmountCell.textContent = amount;
-  dateCell.textContent = date;
-
-  const deleteBtn = document.createElement("button");
-  deleteBtn.textContent = "Delete";
-  deleteBtn.classList.add("delete-button");
-  deleteCell.appendChild(deleteBtn);
-
-  deleteBtn.addEventListener("click", () => {
-    const rowIndex = newRow.rowIndex - 1;
-    expenses.splice(rowIndex, 1);
-
-    totalAmount -= amount;
-    totalAmountBlock.textContent = `Total: ${totalAmount}`;
-
-    expensesTable.deleteRow(newRow.rowIndex - 1);
-  });
+  addExpenseToTable(expense);
+  saveToLocalStorage();
 
   selectCategory.value = "";
   inputAmount.value = "";
   inputDate.value = "";
 });
+
+window.addEventListener("load", loadFromLocalStorage);
